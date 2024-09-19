@@ -1,5 +1,10 @@
 <script>
-  // No SoundControl import or isMusicOn variable needed here
+  import { createEventDispatcher } from 'svelte';
+
+  const dispatch = createEventDispatcher();
+  function startGame() {
+      dispatch('startgame');
+    }
 </script>
 
 <div class="min-h-screen bg-gradient-to-b from-green-100 to-red-100 flex flex-col items-center justify-center p-4">
@@ -21,7 +26,7 @@
     </div>
   </div>
 
-  <button class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-full text-xl mb-4 transition-all duration-200 transform hover:scale-105 flex items-center justify-center space-x-3 shadow-lg">
+  <button class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-full text-xl mb-4 transition-all duration-200 transform hover:scale-105 flex items-center justify-center space-x-3 shadow-lg" on:click={startGame}>
     <span class="font-italic">Iniziamo!</span>
   </button>
 </div>
