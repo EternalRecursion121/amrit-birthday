@@ -1,10 +1,5 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
-
-  const dispatch = createEventDispatcher();
-  function startGame() {
-      dispatch('startgame');
-    }
+  export let startGame;
 </script>
 
 <div class="min-h-screen bg-gradient-to-b from-green-100 to-red-100 flex flex-col items-center justify-center p-4">
