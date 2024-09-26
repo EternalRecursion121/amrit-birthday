@@ -3,7 +3,7 @@
   export let selectCharacter;
 
   let characters = [
-    { name: 'Mario', image: '/images/mario.png', unlocked: true },
+    { name: 'Mario', image: '/images/mario.jpeg', unlocked: true },
     { name: 'Luigi', image: '/images/luigi.png', unlocked: true },
     { name: 'Giovanni', image: '/images/giovanni.png', unlocked: false },
     { name: 'Francesca', image: '/images/francesca.png', unlocked: false },
@@ -34,7 +34,7 @@
 </script>
 
 <div class="min-h-screen bg-gradient-to-b from-green-100 to-red-100 p-4 flex flex-col items-center">
-  <h1 class="text-4xl text-center text-green-600 mb-8">Choose Your Italian Date</h1>
+  <h1 class="text-4xl text-center text-green-600 mb-8 mt-10">Choose Your Italian Date</h1>
   
   <div class="relative w-full max-w-sm h-[70vh] overflow-hidden">
     {#key currentIndex}

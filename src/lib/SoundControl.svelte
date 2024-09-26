@@ -1,22 +1,23 @@
 <script>
   import { VolumeX, Volume2, SkipForward, SkipBack } from "lucide-svelte";
   import { onMount, onDestroy } from 'svelte';
-  
-  export let isMusicOn;
-  
+  import { isMusicOn } from './stores.js';  // Import the store
+
   let audioElement;
   let currentSongIndex = 0;
   let isReady = false;
   const playlist = [
     '/music/thats_amore.mp3',
-    '/music/volare_dean_martin.mp3',
+    '/music/volare.mp3',
     '/music/mambo_italiano.mp3',
     '/music/bella_ciao.mp3',
     '/music/tu_vuo_fa_lamericano.mp3',
     '/music/azzurro.mp3',
+    "/music/torna_a_surriento.mp3"
   ];
 
   onMount(() => {
+    console.log('onMount', $isMusicOn);
     audioElement = new Audio();
     audioElement.src = playlist[currentSongIndex];
     audioElement.volume = 0.5; // Set volume to 50%
@@ -43,23 +44,27 @@
       audioElement.pause();
     }
   }
-
   function playNextSong() {
     currentSongIndex = (currentSongIndex + 1) % playlist.length;
+    if (audioElement) {
+      audioElement.pause();
+      audioElement.currentTime = 0; // Reset the playback position
+    }
     audioElement.src = playlist[currentSongIndex];
-    if ($isMusicOn) audioElement.play();
+    audioElement.load();
+    if ($isMusicOn) {
+      audioElement.play().catch(error => console.error('Error playing audio:', error));
+    }
   }
 
   function playPreviousSong() {
     currentSongIndex = (currentSongIndex - 1 + playlist.length) % playlist.length;
-    audioElement.src = playlist[currentSongIndex];
-    if ($isMusicOn) audioElement.play();
-  }
-
-  $: if ($isMusicOn && isReady && audioElement) {
-    audioElement.play();
-  } else if (!$isMusicOn && audioElement) {
     audioElement.pause();
+    audioElement.src = playlist[currentSongIndex];
+    audioElement.load();
+    if ($isMusicOn) {
+      audioElement.play().catch(error => console.error('Error playing audio:', error));
+    }
   }
 </script>
 
