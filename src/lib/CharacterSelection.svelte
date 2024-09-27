@@ -3,11 +3,15 @@
   export let selectCharacter;
 
   let characters = [
-    { name: 'Mario', image: '/images/mario.jpeg', unlocked: true },
-    { name: 'Luigi', image: '/images/luigi.png', unlocked: true },
-    { name: 'Giovanni', image: '/images/giovanni.png', unlocked: false },
-    { name: 'Francesca', image: '/images/francesca.png', unlocked: false },
-    { name: 'Sofia', image: '/images/sofia.png', unlocked: false },
+    { name: 'Mario', image: '/images/mario.webp', unlocked: true },
+    { name: 'Giovanni', image: '/images/giovanni.webp', unlocked: true },
+    { name: 'Marco', image: '/images/marco.webp', unlocked: false },
+    { name: 'Francesca', image: '/images/francesca.webp', unlocked: false },
+    { name: 'Antonio', image: '/images/antonio.webp', unlocked: false },
+    { name: 'Sofia', image: '/images/sofia.webp', unlocked: false },
+    { name: 'Lorenzo', image: '/images/lorenzo.webp', unlocked: false },
+    { name: 'Elena', image: '/images/elena.webp', unlocked: false },
+    { name: 'Matteo', image: '/images/matteo.webp', unlocked: false },
   ];
 
   let currentIndex = 0;
@@ -31,6 +35,35 @@
       alert('This character is locked!');
     }
   }
+
+  // New function to count characters with max love level
+  function countMaxLoveCharacters() {
+    let count = 0;
+    for (let character of characters) {
+      const storedData = localStorage.getItem(`chat_${character.name}`);
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        if (parsedData.hasReachedMaxLove) {
+          count++;
+        }
+      }
+    }
+    return count;
+  }
+
+  // New function to unlock characters based on max love count
+  function unlockCharacters() {
+    const maxLoveCount = countMaxLoveCharacters();
+    for (let i = 0; i < Math.min(maxLoveCount + 2, characters.length); i++) {
+      characters[i].unlocked = true;
+    }
+  }
+
+  // Call unlockCharacters when the component is mounted
+  import { onMount } from 'svelte';
+  onMount(() => {
+    unlockCharacters();
+  });
 </script>
 
 <div class="min-h-screen bg-gradient-to-b from-green-100 to-red-100 p-4 flex flex-col items-center">

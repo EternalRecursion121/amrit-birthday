@@ -19,9 +19,8 @@
     }
 
     function backToSelection() {
-        console.log('backToSelection');
         view.set('selection');
-        console.log('view', $view);
+        selectedCharacter.set(null);
     }
 </script>
 

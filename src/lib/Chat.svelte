@@ -1,32 +1,49 @@
 <script>
   import { onMount } from 'svelte';
   import ConfirmationModal from './ConfirmationModal.svelte';
+  import ThatsAmoreModal from './ThatsAmoreModal.svelte';
+
   export let character;
   export let backToSelection;
 
+  let showThatsAmoreModal = false;
   let messages = [];
   let newMessage = '';
   let chatContainer;
   let isLoading = false;
   let showConfirmationModal = false;
+  let loveLevel = 0;
+  let isBlocked = false;
+  let hasReachedMaxLove = false;
 
   onMount(async () => {
     await fetchInitialMessages();
     scrollToBottom();
   });
 
+  // For debugging purposes
   $: console.log(messages);
 
+  // Reactive statement to check love level
+  $: if (loveLevel >= 100 && !hasReachedMaxLove) {
+    showThatsAmoreModal = true;
+    hasReachedMaxLove = true;
+    saveMessages(messages, loveLevel, isBlocked, hasReachedMaxLove);
+  }
+
+  // Fetch initial messages from localStorage or API
   async function fetchInitialMessages() {
-    const storedMessages = localStorage.getItem(`chat_${character.name}`);
-    if (storedMessages) {
-      messages = JSON.parse(storedMessages).map(msg => ({
+    const storedData = localStorage.getItem(`chat_${character.name}`);
+    if (storedData) {
+      const parsedData = JSON.parse(storedData);
+      messages = parsedData.messages.map(msg => ({
         ...msg,
         timestamp: new Date(msg.timestamp)
       }));
-    } 
-
-    if (!storedMessages || messages.length === 0) {
+      loveLevel = parsedData.loveLevel || 0;
+      isBlocked = parsedData.isBlocked || false;
+      hasReachedMaxLove = parsedData.hasReachedMaxLove || false;
+    } else {
       try {
         const response = await fetch(`/api/chat/${character.name.toLowerCase()}`, {
           method: 'POST',
@@ -34,7 +51,8 @@
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            messages: []
+            messages: [],
+            loveLevel: loveLevel
           }),
         });
 
@@ -42,25 +60,27 @@
           throw new Error('Failed to fetch initial messages');
         }
 
-        const responseContent = await response.json();
-        messages = responseContent.map(msg => ({
-          ...msg,
-          timestamp: new Date(msg.timestamp)
-        }));
-        saveMessages(messages);
+        const responseData = await response.json();
+        const assistantMessage = { role: 'assistant', content: responseData.reply, timestamp: new Date() };
+        messages = [assistantMessage];
+        loveLevel = responseData.loveLevel;
+        if (loveLevel <= -100) {
+          isBlocked = true;
+        }
+        saveMessages(messages, loveLevel, isBlocked, hasReachedMaxLove);
       } catch (error) {
         console.error('Error fetching initial messages:', error);
-        // Handle error (e.g., show an error message to the user)
       }
     }
   }
 
+  // Send a new message
   async function sendMessage() {
-    if (newMessage.trim()) {
+    if (newMessage.trim() && !isBlocked) {
       const userMessage = { role: 'user', content: newMessage, timestamp: new Date() };
       const updatedMessages = [...messages, userMessage];
       messages = updatedMessages;
-      saveMessages(updatedMessages);
+      saveMessages(updatedMessages, loveLevel, isBlocked, hasReachedMaxLove);
       newMessage = '';
       scrollToBottom();
 
@@ -73,6 +93,7 @@
           },
           body: JSON.stringify({
             messages: updatedMessages.map(({ role, content }) => ({ role, content })),
+            loveLevel: loveLevel
           }),
         });
 
@@ -80,13 +101,17 @@
           throw new Error('Failed to fetch response');
         }
 
-        const responseContent = await response.json();
-        const assistantMessage = { role: 'assistant', content: responseContent[0].text, timestamp: new Date() };
+        const responseData = await response.json();
+        const assistantMessage = { role: 'assistant', content: responseData.reply, timestamp: new Date() };
         messages = [...updatedMessages, assistantMessage];
-        saveMessages(messages);
+        loveLevel = responseData.loveLevel;
+        if (loveLevel <= -100) {
+          isBlocked = true;
+        }
+        saveMessages(messages, loveLevel, isBlocked, hasReachedMaxLove);
       } catch (error) {
         console.error('Error fetching response:', error);
-        // Handle error (e.g., show an error message to the user)
+        // Optionally, handle the error (e.g., show an error message to the user)
       } finally {
         isLoading = false;
         scrollToBottom();
@@ -94,28 +119,67 @@
     }
   }
 
-  function saveMessages(messagesToSave) {
-    localStorage.setItem(`chat_${character.name}`, JSON.stringify(messagesToSave));
+  // Save messages and related data to localStorage
+  function saveMessages(messagesToSave, loveLevelToSave, isBlockedToSave, hasReachedMaxLoveToSave) {
+    const dataToSave = {
+      messages: messagesToSave,
+      loveLevel: loveLevelToSave,
+      isBlocked: isBlockedToSave,
+      hasReachedMaxLove: hasReachedMaxLoveToSave
+    };
+    localStorage.setItem(`chat_${character.name}`, JSON.stringify(dataToSave));
   }
 
+  // Scroll chat to the bottom
   function scrollToBottom() {
     setTimeout(() => {
-      chatContainer.scrollTop = chatContainer.scrollHeight;
+      if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
     }, 0);
   }
 
+  // Show confirmation modal for restarting chat
   function confirmRestart() {
     showConfirmationModal = true;
   }
 
+  // Restart the chat by resetting all relevant variables
   async function restartChat() {
     messages = [];
-    saveMessages(messages);
+    loveLevel = 0; // Reset loveLevel
+    isBlocked = false; // Reset isBlocked
+    hasReachedMaxLove = false; // Reset hasReachedMaxLove
+    saveMessages(messages, loveLevel, isBlocked, hasReachedMaxLove);
     showConfirmationModal = false;
     await fetchInitialMessages();
     scrollToBottom();
   }
+
+  // Continue chatting after modal is shown
+  function continueChat() {
+    showThatsAmoreModal = false;
+    // Optionally, add any other logic here for continuing the chat
+  }
+
+  // Go back to character selection
+  function backToCharacterSelection() {
+    showThatsAmoreModal = false;
+    backToSelection();
+  }
+
+  // Compute the love percentage for the progress bar
+  $: cappedLoveLevel = Math.max(-100, Math.min(100, loveLevel));
+  $: lovePercentage = Math.abs(cappedLoveLevel);
 </script>
+
+{#if showThatsAmoreModal}
+  <ThatsAmoreModal
+    bind:showModal={showThatsAmoreModal}
+    onContinue={continueChat}
+    onBackToSelection={backToCharacterSelection}
+  />
+{/if}
 
 <div class="flex flex-col h-screen bg-gray-100">
   <!-- Header -->
@@ -127,6 +191,33 @@
     </button>
     <img src={character.image} alt={character.name} class="w-10 h-10 rounded-full mr-3">
     <h1 class="text-xl font-bold">{character.name}</h1>
+  </div>
+
+  <!-- Love Progress Bar -->
+  <div class="p-4 bg-white flex items-center justify-center">
+    <div class="flex items-center">
+      <span class="text-2xl mr-2">
+        {#if loveLevel >= 100}
+          💖
+        {:else if loveLevel >= 50}
+          😍
+        {:else if loveLevel >= 0}
+          🙂
+        {:else if loveLevel > -50}
+          😐
+        {:else if loveLevel > -100}
+          😠
+        {:else}
+          🤬
+        {/if}
+      </span>
+      <div class="w-48 h-4 bg-gray-200 rounded-full overflow-hidden">
+        <div
+          class="h-full rounded-full"
+          style="width: {lovePercentage}%; background-color: {loveLevel >= 0 ? '#EF4444' : '#3B82F6'}"
+        ></div>
+      </div>
+    </div>
   </div>
 
   <!-- Chat messages -->
@@ -158,12 +249,12 @@
     <input
       type="text"
       bind:value={newMessage}
-      placeholder="Type a message..."
+      placeholder="{isBlocked ? 'You have been blocked.' : 'Type a message...'}"
       class="flex-1 bg-gray-100 rounded-full px-4 py-2 focus:outline-none"
-      on:keypress={(e) => e.key === 'Enter' && !isLoading && sendMessage()}
-      disabled={isLoading}
+      on:keypress={(e) => e.key === 'Enter' && !isLoading && !isBlocked && sendMessage()}
+      disabled={isLoading || isBlocked}
     >
-    <button on:click={sendMessage} class="ml-2 bg-green-500 text-white rounded-full p-2" disabled={isLoading}>
+    <button on:click={sendMessage} class="ml-2 bg-green-500 text-white rounded-full p-2" disabled={isLoading || isBlocked}>
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
       </svg>
