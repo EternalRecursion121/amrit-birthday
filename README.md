@@ -1,38 +1,54 @@
-# create-svelte
+# That's Amore
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+An Italian-themed chat application built with Svelte and Claude.
 
-## Creating a project
+## Overview
 
-If you're seeing this, you've probably already done this step. Congrats!
+That's Amore is an interactive AI-powered language learning dating simulator featuring Italian characters, designed as a personal birthday gift. 
+
+## Features
+
+- Character selection with multiple unique personalities
+- Interactive chat system powered by Claude
+- Relationship progression tracking system
+- Dynamic character unlocking
+- Italian music player with multiple tracks
+- Local storage for conversation persistence
+
+## Technology Stack
+
+- Svelte/SvelteKit
+- Tailwind CSS
+- Anthropic Claude API
+- Canvas Confetti
+- Lucide-Svelte for icons
+
+## Development
 
 ```bash
-# create a new project in the current directory
-npm create svelte@latest
+# Install dependencies
+npm install
 
-# create a new project in my-app
-npm create svelte@latest my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
+# Start development server
 npm run dev
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```bash
+# Build for production
 npm run build
+
+# Preview production build
+npm run preview
 ```
 
-You can preview the production build with `npm run preview`.
+## Implementation Details
 
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+- AI characters each have unique personality prompts
+- Chat interactions influence relationship scores
+- Save/load functionality using localStorage
+- Mobile-friendly responsive design
+- Progressive feature unlocks based on user interactions
+
+## Project Structure
+
+- `/src/routes` - Application routes and API endpoints
+- `/src/lib` - Reusable components and utilities
+- `/static` - Static assets including images and music
