@@ -4,7 +4,7 @@ An Italian-themed chat application built with Svelte and Claude.
 
 ## Overview
 
-That's Amore is an interactive AI-powered language learning dating simulator featuring Italian characters, designed as a personal birthday gift. 
+That's Amore is an interactive AI-powered language learning dating simulator featuring Italian characters.
 
 ## Features
 
