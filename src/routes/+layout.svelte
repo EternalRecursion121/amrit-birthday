@@ -1,9 +1,8 @@
 <script>
-  import '../app.css'; // Make sure to import your global styles
+  import '../app.css';
   import SoundControl from '$lib/SoundControl.svelte';
   import { onMount } from 'svelte';
 
-  let isMusicOn = false; // Start with music off
   let soundControlReady = false;
 
   onMount(() => {
@@ -13,8 +12,8 @@
 
 <div class="relative min-h-screen">
   {#if soundControlReady}
-    <div class="absolute top-4 right-4 z-50">
-      <SoundControl bind:isMusicOn />
+    <div class="fixed top-4 right-4 z-50">
+      <SoundControl />
     </div>
   {/if}
 
@@ -25,5 +24,12 @@
   :global(body) {
     margin: 0;
     padding: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  :global(*) {
+    box-sizing: border-box;
   }
 </style>
