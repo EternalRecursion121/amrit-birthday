@@ -11,16 +11,28 @@ const basePrompt = `You are a character in an Italian "dating sim" language lear
 As you converse, track a 'love level' between you and the user, ranging from -100 to +100. The current love level is {loveLevel}. Assess and update this level after each interaction based on the user's message and your response.
 
 - At +100 love level, say "Ti amo!" (I love you!) and express your love sincerely.
-- At -100 love level, say "Ti odio!" (I hate you!) and state that you're blocking the user. Don't respond after this point.
+- At -100 love level, say "Ti odio!" (I hate you!) and state that you're blocking the user.
 
-Output your reply and the updated love level in JSON format:
+Use the respond tool to send your reply and updated love level.`;
 
-{
-  "reply": "Your reply here.",
-  "love_level": updated_love_level
-}
-
-Ensure to output only the JSON object without any additional text.`;
+const respondTool = {
+  name: "respond",
+  description: "Send a response to the user with the updated love level",
+  input_schema: {
+    type: "object",
+    properties: {
+      reply: {
+        type: "string",
+        description: "Your flirtatious reply message to the user"
+      },
+      love_level: {
+        type: "integer",
+        description: "The updated love level after this interaction, from -100 to +100"
+      }
+    },
+    required: ["reply", "love_level"]
+  }
+};
 
 const characters = {
   "mario": {
@@ -90,19 +102,19 @@ export async function POST({ request, params }) {
       max_tokens: 1000,
       temperature: 0.7,
       messages: formattedMessages,
-      system: characters[character].prompt.replace('{loveLevel}', loveLevel)
+      system: characters[character].prompt.replace('{loveLevel}', loveLevel),
+      tools: [respondTool],
+      tool_choice: { type: "tool", name: "respond" }
     });
 
-    const assistantContent = response.content[0].text;
-    console.log(assistantContent);
-
-    let replyData;
-    try {
-      replyData = JSON.parse(assistantContent);
-    } catch (err) {
-      console.error('Error parsing assistant reply:', err);
-      throw error(500, 'Error parsing assistant reply');
+    const toolUse = response.content.find(block => block.type === 'tool_use');
+    if (!toolUse) {
+      console.error('No tool use in response:', response.content);
+      throw error(500, 'Error processing assistant reply');
     }
+
+    const replyData = toolUse.input;
+    console.log(replyData);
 
     if (replyData.love_level <= -100) {
       return json({ reply: replyData.reply, loveLevel: replyData.love_level, isBlocked: true });
