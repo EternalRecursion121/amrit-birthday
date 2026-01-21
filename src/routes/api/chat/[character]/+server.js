@@ -86,7 +86,7 @@ export async function POST({ request, params }) {
     }
 
     const response = await client.messages.create({
-      model: "claude-3-5-sonnet-20240620",
+      model: "claude-4-5-opus",
       max_tokens: 1000,
       temperature: 0.7,
       messages: formattedMessages,
